@@ -5,14 +5,26 @@
   //   type: 'input',
   //   message: 'What\'s your name?',
   // }, {
-//   name: 'age',
-//   type: 'number',
-//   message: 'How old are you?',
-//   default: 18,
-// }]).then((answers: { name: string, age: number}) => {
-  //   console.log(`\nHi ${answers.name}. ${answers.age}? Nice! \n`);
-  // });
-  
+    //   name: 'age',
+    //   type: 'number',
+    //   message: 'How old are you?',
+    //   default: 18,
+    // }]).then((answers: { name: string, age: number}) => {
+      //   console.log(`\nHi ${answers.name}. ${answers.age}? Nice! \n`);
+      // });
+      
+      // const msg = new Message("heLlo world!");
+      // msg.show(); // "heLlo world!"
+      // msg.capitalize();
+      // msg.show(); // "Hello world!"
+      // msg.toLowerCase();
+      // msg.show(); // "hello world!"
+      // msg.toUpperCase();
+      // msg.show(); // "HELLO WORLD!"
+      // Message.showColorized(MessageVariant.Success, "Test"); // √ "Test"
+      // Message.showColorized(MessageVariant.Error, "Test 2"); // "x Test 2"
+      // Message.showColorized(MessageVariant.Info, "Test 3"); // ℹ "Test 3"
+
 const inquirer = require('inquirer');
 const consola = require('consola');
 
@@ -30,27 +42,32 @@ enum Action {
 };
 
 type InquirerAnswers = {
-  action: Action
+  action: Action;
 };
+
+type User = {
+  name: string;
+  age: number;
+}
 
 class Message {
 	constructor(private content: string) {}
 
 	public show(): void {
 		console.log(this.content)
-	}
+	};
 
 	public capitalize()  {
 		this.content = this.content.charAt(0).toUpperCase() + this.content.slice(1).toLocaleLowerCase()
-	}
+	};
 
 	public toUpperCase() {
 		this.content = this.content.toUpperCase()
-	}
+	};
 
 	public toLowerCase() {
 		this.content = this.content.toLocaleLowerCase()
-	}
+	};
 
 	public static showColorized(variant: MessageVariant, text: string): void {
 		if (variant === MessageVariant.Success) {
@@ -62,20 +79,53 @@ class Message {
 		} else {
 			consola.info(text)
 		}
-	}
+	};
+};
+
+class UsersData {
+  private data: User[] = [];
+
+  public showAll(): void {
+    Message.showColorized(MessageVariant.Info, 'Users data');
+    if( this.data.length === 0) Message.showColorized(MessageVariant.Error,'No data...');
+    else console.table(this.data);
+  };
+
+  public add (User: User): void {
+    if(typeof User.age === 'number' && 
+       typeof User.name === 'string' && 
+       User.age > 0 && 
+       User.name.length > 0){
+        this.data.push(User);
+        Message.showColorized(MessageVariant.Success,'User has been successfully added!');
+    } else {
+      Message.showColorized(MessageVariant.Error,'Wrong data!');
+    }
+  };
+
+  public remove (userName: string) {
+    const userIndex = this.data.findIndex((user) => user.name === userName);
+    if(userIndex !== -1) {
+			this.data.splice(userIndex, 1)
+      Message.showColorized(MessageVariant.Success,'User deleted!');
+    } else {
+      Message.showColorized(MessageVariant.Error,'User not found...');
+    }
+  };
 }
 
-const msg = new Message("heLlo world!");
-msg.show(); // "heLlo world!"
-msg.capitalize();
-msg.show(); // "Hello world!"
-msg.toLowerCase();
-msg.show(); // "hello world!"
-msg.toUpperCase();
-msg.show(); // "HELLO WORLD!"
-Message.showColorized(MessageVariant.Success, "Test"); // √ "Test"
-Message.showColorized(MessageVariant.Error, "Test 2"); // "x Test 2"
-Message.showColorized(MessageVariant.Info, "Test 3"); // ℹ "Test 3"
+const users = new UsersData();
+
+users.showAll();
+users.add({ name: "Jan", age: 20 });
+users.add({ name: "Adam", age: 30 });
+users.add({ name: "Kasia", age: 23 });
+users.add({ name: "Basia", age: -6 });
+users.showAll();
+users.remove("Maurycy");
+users.remove("Adam");
+users.showAll();
+
 
 const startApp = () => {
   
