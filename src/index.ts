@@ -24,6 +24,17 @@
       // Message.showColorized(MessageVariant.Success, "Test"); // √ "Test"
       // Message.showColorized(MessageVariant.Error, "Test 2"); // "x Test 2"
       // Message.showColorized(MessageVariant.Info, "Test 3"); // ℹ "Test 3"
+      
+      // users.showAll();
+      // users.add({ name: "Jan", age: 20 });
+      // users.add({ name: "Adam", age: 30 });
+      // users.add({ name: "Kasia", age: 23 });
+      // users.add({ name: "Basia", age: -6 });
+      // users.showAll();
+      // users.remove("Maurycy");
+      // users.remove("Adam");
+      // users.showAll();
+
 
 const inquirer = require('inquirer');
 const consola = require('consola');
@@ -37,6 +48,7 @@ enum MessageVariant {
 enum Action {
   List = "list",
   Add = "add",
+  Edit = "edit",
   Remove = "remove",
   Quit = "quit"
 };
@@ -103,8 +115,26 @@ class UsersData {
     }
   };
 
+  public async edit (userName: string, newUserData: User) {
+    const userIndex: number = this.data.findIndex((user) => user.name === userName);
+
+    if(typeof newUserData.age === 'number' && 
+       typeof newUserData.name === 'string' && 
+       newUserData.age > 0 && 
+       newUserData.name.length > 0){
+      if(userIndex !== -1) {
+        this.data[userIndex] = newUserData
+        Message.showColorized(MessageVariant.Success,'User has been successfully editet!');
+      } else {
+        Message.showColorized(MessageVariant.Error,'User not found...');
+      }
+    } else {
+      Message.showColorized(MessageVariant.Error,'Wrong data!');
+    }
+  };
+
   public remove (userName: string) {
-    const userIndex = this.data.findIndex((user) => user.name === userName);
+    const userIndex: number = this.data.findIndex((user) => user.name === userName);
     if(userIndex !== -1) {
 			this.data.splice(userIndex, 1)
       Message.showColorized(MessageVariant.Success,'User deleted!');
@@ -114,31 +144,79 @@ class UsersData {
   };
 }
 
-const users = new UsersData();
-
-users.showAll();
-users.add({ name: "Jan", age: 20 });
-users.add({ name: "Adam", age: 30 });
-users.add({ name: "Kasia", age: 23 });
-users.add({ name: "Basia", age: -6 });
-users.showAll();
-users.remove("Maurycy");
-users.remove("Adam");
-users.showAll();
-
-
 const startApp = () => {
-  
   inquirer.prompt([{
     name: 'action',
     type: 'input',
     message: 'How can I help you?',
-  }]).then( async (answers: InquirerAnswers) => {
-    console.log("Chosen action: " + answers.action);
+  }]).then(async (answers: InquirerAnswers) => {
+    switch (answers.action) {
+      case Action.List:
+        users.showAll();
+        break;
+      case Action.Add:
+        const user = await inquirer.prompt([{
+          name: 'name',
+          type: 'input',
+          message: 'Enter name',
+        }, {
+          name: 'age',
+          type: 'number',
+          message: 'Enter age',
+        }]);
+        users.add(user);
+        break;
+      case Action.Edit:
+        const userName = await inquirer.prompt([{
+          name: 'name',
+          type: 'input',
+          message: 'Enter name',
+        }]);
+        if( typeof userName.name === 'string' && userName.name.length > 0){
+          const newUserData = await inquirer.prompt([{
+            name: 'name',
+            type: 'input',
+            message: 'Enter new name',
+          }, {
+            name: 'age',
+            type: 'number',
+            message: 'Enter new age',
+          }]);
+          users.edit(userName.name, newUserData);
+        } else {
+          Message.showColorized(MessageVariant.Error,'Wrong data!');
+        }
+        break;
+      case Action.Remove:
+        const name = await inquirer.prompt([{
+          name: 'name',
+          type: 'input',
+          message: 'Enter name',
+        }]);
+        users.remove(name.name);
+        break;
+      case Action.Quit:
+        Message.showColorized(MessageVariant.Info, "Bye bye!");
+        return;
+      default: Message.showColorized(MessageVariant.Info, "Command not found");
+    }
+
     startApp();
-    if (answers.action === "quit")
-      return;
   });
-};
+}
+
+const users = new UsersData();
+
+console.log("\n");
+console.info("      Welcome to the UsersApp!");
+console.log("====================================");
+Message.showColorized(MessageVariant.Info, "Available actions");
+console.log("\n");
+console.log("list – show all users");
+console.log("add – add new user to the list");
+console.log("edit – edit new user to the list");
+console.log("remove – remove user from the list");
+console.log("quit – quit the app");
+console.log("\n");
 
 startApp();
